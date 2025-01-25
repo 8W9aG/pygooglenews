@@ -12,6 +12,7 @@ class GoogleNews:
         self.country = country.upper()
         self.BASE_URL = 'https://news.google.com/rss'
         self._session = session if session is not None else requests.Session()
+        self.timeout = 30.0
 
     def __top_news_parser(self, text):
         """Return subarticles from the main and topic feeds"""
@@ -50,7 +51,8 @@ class GoogleNews:
                 "api_key": api_key,
                 "url": url,
                 "render_js": "false"
-            }
+            },
+            timeout=self.timeout,
         )
         if response.status_code == 200:
             return response
@@ -63,14 +65,11 @@ class GoogleNews:
             raise Exception("Pick either ScrapingBee or proxies. Not both!")
 
         if proxies:
-            r = self._session.get(feed_url, proxies = proxies)
-        else:
-            r = self._session.get(feed_url)
-
-        if scraping_bee:
+            r = self._session.get(feed_url, proxies = proxies, timeout=self.timeout)
+        elif scraping_bee:
             r = self.__scaping_bee_request(url = feed_url, api_key = scraping_bee)
         else:
-            r = self._session.get(feed_url)
+            r = self._session.get(feed_url, timeout=self.timeout)
 
 
         if 'https://news.google.com/rss/unsupported' in r.url:
